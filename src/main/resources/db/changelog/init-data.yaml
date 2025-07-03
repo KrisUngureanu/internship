@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002
+      author: kristina
+      changes:
+        - insert:
+            tableName: course
+            columns:
+              - column: { name: name, value: Java Developer }
+              - column: { name: description, value: Полный курс по Java }
+              - column: { name: created_time, valueDate: 2025-06-30T00:00:00 }
+              - column: { name: updated_time, valueDate: 2025-06-30T00:00:00 }
+
+        - insert:
+            tableName: chapter
+            columns:
+              - column: { name: name, value: if-else conditions }
+              - column: { name: description, value: Работа с условиями в Java }
+              - column: { name: sort_order, valueNumeric: 1 }
+              - column: { name: course_id, valueNumeric: 1 }
+              - column: { name: created_time, valueDate: 2025-06-30T00:10:00 }
+              - column: { name: updated_time, valueDate: 2025-06-30T00:10:00 }
+
+        - insert:
+            tableName: lesson
+            columns:
+              - column: { name: name, value: Условный оператор if }
+              - column: { name: description, value: Основы условного оператора if в Java }
+              - column: { name: content, value: Примеры использования if }
+              - column: { name: sort_order, valueNumeric: 1 }
+              - column: { name: chapter_id, valueNumeric: 1 }
+              - column: { name: created_time, valueDate: 2025-06-30T00:15:00 }
+              - column: { name: updated_time, valueDate: 2025-06-30T00:15:00 }
+
+        - insert:
+            tableName: lesson
+            columns:
+              - column: { name: name, value: Циклы }
+              - column: { name: description, value: Основы циклов в Java }
+              - column: { name: content, value: "Примеры использования while, do while" }
+              - column: { name: sort_order, valueNumeric: 2 }
+              - column: { name: chapter_id, valueNumeric: 1 }
+              - column: { name: created_time, valueDate: 2025-06-30T00:15:00 }
+              - column: { name: updated_time, valueDate: 2025-06-30T00:15:00 }
+
+        - insert:
+            tableName: course
+            columns:
+              - column: { name: name, value: Python Developer }
+              - column: { name: description, value: Полный курс по Python }
+              - column: { name: created_time, valueDate: 2025-06-30T00:00:00 }
+              - column: { name: updated_time, valueDate: 2025-06-30T00:00:00 }
+
+        - insert:
+            tableName: chapter
+            columns:
+              - column: { name: name, value: if-else conditions }
+              - column: { name: description, value: Работа с условиями в Python }
+              - column: { name: sort_order, valueNumeric: 1 }
+              - column: { name: course_id, valueNumeric: 2 }
+              - column: { name: created_time, valueDate: 2025-06-30T00:10:00 }
+              - column: { name: updated_time, valueDate: 2025-06-30T00:10:00 }
+
+        - insert:
+            tableName: lesson
+            columns:
+              - column: { name: name, value: Условный оператор if }
+              - column: { name: description, value: Основы условного оператора if в Python }
+              - column: { name: content, value: Примеры использования if }
+              - column: { name: sort_order, valueNumeric: 1 }
+              - column: { name: chapter_id, valueNumeric: 2 }
+              - column: { name: created_time, valueDate: 2025-06-30T00:15:00 }
+              - column: { name: updated_time, valueDate: 2025-06-30T00:15:00 }

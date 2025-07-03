@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - changeSet:
+      id: init-empty
+      author: kristina
+      changes: []

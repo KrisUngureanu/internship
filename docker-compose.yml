@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: bitlab-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: bitlab_db
+      POSTGRES_USER: bitlab
+      POSTGRES_PASSWORD: bitlab123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mainservice:
+    image: kristinaunguryanu/mainservice:latest  # имя, которое ты используешь при push в Docker Hub
+    container_name: mainservice
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bitlab_db
+      SPRING_DATASOURCE_USERNAME: bitlab
+      SPRING_DATASOURCE_PASSWORD: bitlab123
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
