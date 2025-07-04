@@ -15,13 +15,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   mainservice:
-    image: kristinaunguryanu/mainservice:latest  # имя, которое ты используешь при push в Docker Hub
+    image: kristinaunguryanu/mainservice:latest
     container_name: mainservice
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8087:8080"
+      - "8087:8087"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bitlab_db
       SPRING_DATASOURCE_USERNAME: bitlab
