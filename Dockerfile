@@ -1,5 +1,5 @@
 # Используем официальный образ с Java 21 и Gradle
-FROM gradle:8.7.0-jdk21 AS build
+FROM gradle:8.7.0-jdk17 AS build
 
 # Кэшируем зависимости
 COPY build.gradle settings.gradle ./
