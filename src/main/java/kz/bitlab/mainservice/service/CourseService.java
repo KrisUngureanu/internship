@@ -36,11 +36,32 @@ public class CourseService {
                     return new IllegalArgumentException("Course not found");});
     }
 
-    public CourseDto createCourse(CourseDto dto) {
-        log.info("creating course");
-        log.debug("course details {}", dto);
-        Course course = CourseMapper.toEntity(dto);
-        Course saved = courseRepository.save(course);
-        return CourseMapper.toDto(saved);
+//    public CourseDto createCourse(CourseDto dto) {
+//        log.info("creating course");
+//        log.debug("course details {}", dto);
+//        Course course = CourseMapper.toEntity(dto);
+//        Course saved = courseRepository.save(course);
+//        return CourseMapper.toDto(saved);
+//    }
+
+    public CourseDto createCourse(CourseDto courseDto) {
+        if (courseDto == null) {
+            throw new IllegalArgumentException("CourseDto cannot be null");
+        }
+
+        // Преобразование DTO в сущность
+        Course course = CourseMapper.toEntity(courseDto);
+
+        // Сохранение курса
+        Course savedCourse = courseRepository.save(course);
+
+        // Проверка: если сохранение прошло неуспешно
+        if (savedCourse == null) {
+            throw new IllegalArgumentException("Failed to save course");
+        }
+
+        // Преобразование сохраненной сущности обратно в DTO
+        return CourseMapper.toDto(savedCourse);
     }
+
 }

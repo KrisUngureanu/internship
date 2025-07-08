@@ -1,4 +1,5 @@
 package kz.bitlab.mainservice;
+
 import kz.bitlab.mainservice.dto.CourseDto;
 import kz.bitlab.mainservice.model.Course;
 import kz.bitlab.mainservice.repository.CourseRepository;
@@ -6,21 +7,24 @@ import kz.bitlab.mainservice.service.CourseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 public class CourseServiceTest {
+
     private CourseService courseService;
     private CourseRepository courseRepository;
+
     @BeforeEach
     public void setUp() {
         courseRepository = Mockito.mock(CourseRepository.class);
         courseService = new CourseService(courseRepository);
     }
+
     @Test
     public void getAllCourses() {
         List<Course> courses = Arrays.asList(new Course(), new Course());
@@ -42,6 +46,7 @@ public class CourseServiceTest {
         Course course = new Course();
         when(courseRepository.save(any(Course.class))).thenReturn(course);
         CourseDto courseDto = courseService.createCourse(new CourseDto());
+        assertNotNull(courseDto);
     }
 
     @Test
@@ -53,7 +58,9 @@ public class CourseServiceTest {
     @Test
     public void createCourseButNull() {
         when(courseRepository.save(any(Course.class))).thenReturn(null);
-        assertThrows(IllegalArgumentException.class, () -> courseService.createCourse(new CourseDto()));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            courseService.createCourse(new CourseDto());
+        });
+        assertEquals("Failed to save course", exception.getMessage());
     }
-    
 }
