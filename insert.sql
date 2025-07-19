@@ -2136,6 +2136,11 @@ f71c3dd0-c426-4b7a-b81c-595ce53eb238	ccf9297d-ae18-438c-b7d2-a551214cebd7
 COPY public.credential (id, salt, type, user_id, created_date, user_label, secret_data, credential_data, priority) FROM stdin;
 e1442c10-c0c4-4eb3-803b-570f138766ea	\N	password	ac9b5ddc-703f-4896-af4a-df35265bc770	1752933552938	\N	{"value":"ZCULiEqBBXVH77ZKtLm7LLe7/yLkp1QrUjwSmUePLZgzX0ojmvUyZNrd3a8bU2jXJw8FqzEEMmoYaH9T/tHqOw==","salt":"tgVrC4rAwNGjKSc6nbbzhw==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
 e2eaa059-ea8b-49f2-8765-94da52f6d0d9	\N	password	fae344b0-24a5-48ed-882b-b1a5f0240952	1752933664817	My password	{"value":"GuyxJOVG+0o8xku2YvsFhE3LH1MkHv3+MKDPOtVE9mc9ShPrvJtAzZcKpcNi5/oBdMd+G4zi14NNz2Q4wevCyQ==","salt":"Bvv15UnEp+JuQAyM9w5AkQ==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
+746dd76c-ece5-415c-a654-2e587af7b815	\N	password	d6ee01e1-85ba-4d4a-96ce-3c5534f72aae	1752935291310	\N	{"value":"d9nQv5K4ua8ye2R6z2ORU2PsyZve8YDrFE4m58IY14nBoitIrve57ztF+0XyPebRpG1mevw7Oqs3T6cDLvpOFQ==","salt":"EAkggO4WGUIMEfJwchhA1g==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
+295f74c1-18f7-4839-8d7c-d944c30c1b5c	\N	password	0feb831e-2c9c-40f7-bafc-10053c98603f	1752943901329	\N	{"value":"8cjjitsNwdTQjSf3WsawjXWPhhJy8KSyTX9+rUndElVRbkOXjmncIPaOSnBhuvqipo81Zzee2l5S6v/Jvgh7Yw==","salt":"yXueMzj99WVl3fPI99++oQ==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
+d53509cb-7498-464f-82f3-46e6bd64eadf	\N	password	2b30e375-7b39-470f-b08f-45182f3bf61a	1752944141423	\N	{"value":"5jePyMMOqIbAS1t4NO9ucSEyh4nRTa46khozhavxDYtp+eZvrpvbCiMIhtZiE1E3vDQ/YMkwFQ+ERBzW1OMRjA==","salt":"m8Sas6uVsqa9UaLi+wL0Zw==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
+d50f1d05-fa22-45d8-9a98-cb1f767567de	\N	password	ee7816e0-68e4-4e23-be24-76533e28753a	1752944305007	\N	{"value":"f5vVb+FWfZfdQ7as2HvydcurnhkcTdlBlESkHBfl7R9uvlXoTfpodkia0xNef/+MPP/VmTrOsbUqroOPW7zHCQ==","salt":"7qQM+eOw0jYTO1R0kswwLw==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
+a33e68fc-709b-4d15-9a51-aa7897991e02	\N	password	014b9ea3-af89-46be-8127-d16e93f3756c	1752944482715	\N	{"value":"erDVA+b5G4daetpIrWOXvqEhXFiqajXe8Blx6KxPCkyBDhLg16JcqS8ffkxlNJisqL9ZnQ/D4YZP8kYHwGzhcw==","salt":"BKQ7/GSNV3CB9FNJHBhDaw==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
 \.
 
 
@@ -2522,6 +2527,9 @@ af1aa306-0612-4c6b-be82-f749407aba52	a7de8481-c201-4c82-90be-4f1e0f9402bf	f	${ro
 8a9fca05-83d6-4438-9477-5a8510d3f957	a7de8481-c201-4c82-90be-4f1e0f9402bf	f		ADMIN	a7de8481-c201-4c82-90be-4f1e0f9402bf	\N	\N
 afc282cd-8a9a-44bf-aeab-ce2409a984ff	a7de8481-c201-4c82-90be-4f1e0f9402bf	f		USER	a7de8481-c201-4c82-90be-4f1e0f9402bf	\N	\N
 eb576549-3b06-4d31-bd86-ae7d32476065	a7de8481-c201-4c82-90be-4f1e0f9402bf	f		TEACHER	a7de8481-c201-4c82-90be-4f1e0f9402bf	\N	\N
+69f14512-ef3c-4e7a-95f0-8d3351d2e44b	85b4e61d-6e24-4e8c-a77a-246f2b83a4e7	t	\N	ADMIN	a7de8481-c201-4c82-90be-4f1e0f9402bf	85b4e61d-6e24-4e8c-a77a-246f2b83a4e7	\N
+1dfa0ec2-02b4-4ae3-82c0-dc53d5284506	85b4e61d-6e24-4e8c-a77a-246f2b83a4e7	t	\N	USER	a7de8481-c201-4c82-90be-4f1e0f9402bf	85b4e61d-6e24-4e8c-a77a-246f2b83a4e7	\N
+f746c5ab-6446-4bd9-8fe5-cd8fb1a69c7a	85b4e61d-6e24-4e8c-a77a-246f2b83a4e7	t	\N	TEACHER	a7de8481-c201-4c82-90be-4f1e0f9402bf	85b4e61d-6e24-4e8c-a77a-246f2b83a4e7	\N
 \.
 
 
@@ -3287,6 +3295,11 @@ COPY public.user_entity (id, email, email_constraint, email_verified, enabled, f
 ac9b5ddc-703f-4896-af4a-df35265bc770	\N	d576b41c-ce6a-4e33-a5db-457c5255f455	f	t	\N	\N	\N	609d82f3-0d9a-41cd-b689-39eaf454deb4	admin	1752933551592	\N	0
 0b8d34d2-32d2-448d-9412-aa4dfe56ecbc	\N	20cfddc2-2f6a-45e6-b600-df7aba28e7b2	f	t	\N	\N	\N	a7de8481-c201-4c82-90be-4f1e0f9402bf	service-account-bitlab-internship-client	1752933620568	85b4e61d-6e24-4e8c-a77a-246f2b83a4e7	0
 fae344b0-24a5-48ed-882b-b1a5f0240952	bitlab_admin@mail.ru	bitlab_admin@mail.ru	t	t	\N	Bitlab	Admin	a7de8481-c201-4c82-90be-4f1e0f9402bf	bitlab_admin	1752933655211	\N	0
+d6ee01e1-85ba-4d4a-96ce-3c5534f72aae	berik@example.com	berik@example.com	t	t	\N	Berik	User	a7de8481-c201-4c82-90be-4f1e0f9402bf	berik	1752935291156	\N	0
+0feb831e-2c9c-40f7-bafc-10053c98603f	teee@example.com	teee@example.com	t	t	\N	teeee	teeeee	a7de8481-c201-4c82-90be-4f1e0f9402bf	teeee	1752943901246	\N	0
+2b30e375-7b39-470f-b08f-45182f3bf61a	ccccc@example.com	ccccc@example.com	t	t	\N	ccccc	ccccc	a7de8481-c201-4c82-90be-4f1e0f9402bf	ccccc	1752944141347	\N	0
+ee7816e0-68e4-4e23-be24-76533e28753a	cccsscc@example.com	cccsscc@example.com	t	t	\N	ssccccc	ssccccc	a7de8481-c201-4c82-90be-4f1e0f9402bf	ssccccc	1752944304903	\N	0
+014b9ea3-af89-46be-8127-d16e93f3756c	ccdcsscc@example.com	ccdcsscc@example.com	t	t	\N	sdsccccc	dssccccc	a7de8481-c201-4c82-90be-4f1e0f9402bf	sdsccccc	1752944482600	\N	0
 \.
 
 
@@ -3369,6 +3382,20 @@ b2bdd427-f171-43ed-a183-64e5a7999a5b	ac9b5ddc-703f-4896-af4a-df35265bc770
 e665abdd-ddb6-4ba2-ab26-c5f2b4e7ceef	fae344b0-24a5-48ed-882b-b1a5f0240952
 8a9fca05-83d6-4438-9477-5a8510d3f957	fae344b0-24a5-48ed-882b-b1a5f0240952
 afc282cd-8a9a-44bf-aeab-ce2409a984ff	fae344b0-24a5-48ed-882b-b1a5f0240952
+85652830-8607-4af6-8ea4-ddc166fc0f1d	d6ee01e1-85ba-4d4a-96ce-3c5534f72aae
+16340e7f-dc46-439a-af1f-ab9d8859ae20	0b8d34d2-32d2-448d-9412-aa4dfe56ecbc
+57ad0429-9cda-4fb5-81a2-a7cbd22bfc0b	0b8d34d2-32d2-448d-9412-aa4dfe56ecbc
+57ad0429-9cda-4fb5-81a2-a7cbd22bfc0b	fae344b0-24a5-48ed-882b-b1a5f0240952
+16340e7f-dc46-439a-af1f-ab9d8859ae20	fae344b0-24a5-48ed-882b-b1a5f0240952
+1a0c8689-5fae-4830-a076-d349fd58e749	fae344b0-24a5-48ed-882b-b1a5f0240952
+85652830-8607-4af6-8ea4-ddc166fc0f1d	0feb831e-2c9c-40f7-bafc-10053c98603f
+1dfa0ec2-02b4-4ae3-82c0-dc53d5284506	0feb831e-2c9c-40f7-bafc-10053c98603f
+85652830-8607-4af6-8ea4-ddc166fc0f1d	2b30e375-7b39-470f-b08f-45182f3bf61a
+85652830-8607-4af6-8ea4-ddc166fc0f1d	ee7816e0-68e4-4e23-be24-76533e28753a
+08752b3e-69da-4a04-8042-2473c269d444	fae344b0-24a5-48ed-882b-b1a5f0240952
+7730a088-83d9-4a65-8b8d-2824a609a1f3	fae344b0-24a5-48ed-882b-b1a5f0240952
+85652830-8607-4af6-8ea4-ddc166fc0f1d	014b9ea3-af89-46be-8127-d16e93f3756c
+afc282cd-8a9a-44bf-aeab-ce2409a984ff	014b9ea3-af89-46be-8127-d16e93f3756c
 \.
 
 

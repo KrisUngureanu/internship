@@ -24,6 +24,7 @@ import java.util.Map;
 public class UserController {
     private final KeycloakService keycloakService;
     @PostMapping(value = "/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public UserRepresentation createUser(@RequestBody UserCreateDto userCreateDto){
         return keycloakService.createUser(userCreateDto);
     }

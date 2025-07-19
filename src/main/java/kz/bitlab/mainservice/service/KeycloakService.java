@@ -5,13 +5,13 @@ import kz.bitlab.mainservice.dto.UserSignInDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.ClientResource;
+import org.keycloak.admin.client.resource.ClientsResource;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -41,7 +41,13 @@ public class KeycloakService {
     @Value("${keycloak.client-secret}")
     private String clientSecret;
 
-    public UserRepresentation createUser(UserCreateDto user){
+    @Value("${keycloak.username}")
+    private String adminUsername;
+
+    @Value("${keycloak.password}")
+    private String adminPassword;
+
+   /* public UserRepresentation createUser(UserCreateDto user){
 
         UserRepresentation newUser = new UserRepresentation();
         newUser.setEmail(user.getEmail());
@@ -68,8 +74,78 @@ public class KeycloakService {
         }
 
         List<UserRepresentation> searchUsers = keycloak.realm(realm).users().search(user.getUsername());
+        var roleUser = keycloak.realm(realm)
+                .clients()
+                .get(client)
+                .roles()
+                .get("USER")
+                .toRepresentation();
+
+
         return searchUsers.get(0);
     }
+*/
+   public UserRepresentation createUser(UserCreateDto user) {
+       // 1. Создаем пользователя
+       UserRepresentation newUser = new UserRepresentation();
+       newUser.setEmail(user.getEmail());
+       newUser.setEmailVerified(true);
+       newUser.setUsername(user.getUsername());
+       newUser.setFirstName(user.getFirstName());
+       newUser.setLastName(user.getLastName());
+       newUser.setEnabled(true);
+
+       CredentialRepresentation credential = new CredentialRepresentation();
+       credential.setType(CredentialRepresentation.PASSWORD);
+       credential.setValue(user.getPassword());
+       credential.setTemporary(false);
+       newUser.setCredentials(List.of(credential));
+
+       Response response = keycloak.realm(realm).users().create(newUser);
+       if (response.getStatus() != HttpStatus.CREATED.value()) {
+           String errorBody = response.readEntity(String.class);
+           log.error("Failed to create user! Status: {}, Body: {}", response.getStatus(), errorBody);
+           throw new RuntimeException("Failed to create user! Keycloak error: " + errorBody);
+       }
+
+       // 2. Находим созданного пользователя
+       List<UserRepresentation> users = keycloak.realm(realm).users().search(user.getUsername());
+       if (users.isEmpty()) {
+           throw new RuntimeException("User created but not found");
+       }
+       UserRepresentation createdUser = users.get(0);
+
+       // 3. Получаем токен администратора
+       String token = getAdminAccessToken();
+
+       // 4. Получаем роль USER из realm roles
+       String roleUrl = url + "/admin/realms/" + realm + "/roles/USER";
+       HttpHeaders headers = new HttpHeaders();
+       headers.setBearerAuth(token);
+       ResponseEntity<Map> roleResponse = restTemplate.exchange(roleUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+
+       if (!roleResponse.getStatusCode().is2xxSuccessful() || roleResponse.getBody() == null) {
+           throw new RuntimeException("Failed to fetch USER role from Keycloak");
+       }
+
+       Map<String, Object> userRole = roleResponse.getBody();
+
+       // 5. Назначаем роль пользователю (realm-level)
+       String assignUrl = url + "/admin/realms/" + realm + "/users/" + createdUser.getId() + "/role-mappings/realm";
+
+       List<Map<String, Object>> roles = List.of(Map.of(
+               "id", userRole.get("id"),
+               "name", userRole.get("name")
+       ));
+
+       headers.setContentType(MediaType.APPLICATION_JSON);
+       restTemplate.postForEntity(assignUrl, new HttpEntity<>(roles, headers), Void.class);
+
+       return createdUser;
+   }
+
+
+
 
     public String signIn(UserSignInDto userSignInDto){
         String tokenEndPoint = url + "/realms/" + realm + "/protocol/openid-connect/token";
@@ -170,5 +246,47 @@ public class KeycloakService {
         result.put("refresh_token", (String) responseBody.get("refresh_token"));
         return result;
     }
+
+    public String getAdminAccessToken() {
+      //  String tokenUrl = url + "/realms/master/protocol/openid-connect/token";
+        String tokenUrl = url + "/realms/" + realm + "/protocol/openid-connect/token";
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "password");
+        formData.add("client_id", "admin-cli");
+        formData.add("username", adminUsername);
+        formData.add("password", adminPassword);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(formData, headers), Map.class);
+        return (String) response.getBody().get("access_token");
+    }
+    public void assignUserRole(String userId) {
+        String token = getAdminAccessToken();
+
+        String clientsUrl = url + "/admin/realms/" + realm + "/clients?clientId=" + client;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        ResponseEntity<List> clientResponse = restTemplate.exchange(clientsUrl, HttpMethod.GET, new HttpEntity<>(headers), List.class);
+        if (clientResponse.getBody() == null || clientResponse.getBody().isEmpty()) {
+            throw new RuntimeException("Client not found");
+        }
+        String clientUUID = (String) ((Map) clientResponse.getBody().get(0)).get("id");
+
+        // 2. Получить роль USER
+        String roleUrl = url + "/admin/realms/" + realm + "/clients/" + clientUUID + "/roles/USER";
+        ResponseEntity<Map> roleResponse = restTemplate.exchange(roleUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        Map<String, Object> userRole = roleResponse.getBody();
+
+        // 3. Присвоить роль пользователю
+        String assignUrl = url + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/clients/" + clientUUID;
+        List<Map<String, Object>> roles = List.of(Map.of(
+                "id", userRole.get("id"),
+                "name", userRole.get("name")
+        ));
+        restTemplate.postForEntity(assignUrl, new HttpEntity<>(roles, headers), Void.class);
+    }
+
 
 }
