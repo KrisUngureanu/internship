@@ -28,34 +28,39 @@ services:
       SPRING_DATASOURCE_PASSWORD: bitlab123
     depends_on:
       - postgres
-  keycloak:
-    image: 'quay.io/keycloak/keycloak:20.0.3'
-    environment:
-        - KC_DB=postgres
-        - KEYCLOAK_ADMIN=admin
-        - KEYCLOAK_ADMIN_PASSWORD=admin
-        - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/postgres
-        - KC_DB_USERNAME=postgres
-        - KC_DB_PASSWORD=pass
-    
-    command:
-        - start-dev
-        - --http-relative-path=/auth
-    ports:
-        - 8081:8080
-        - 8843:8843
-        
-    depends_on:
-        - keycloak-db
-        
+
   keycloak-db:
-    image: 'postgres:15'
-    container_name: 'keycloak-db-container-internship'
+    image: postgres:15
+    container_name: keycloak-db-container-internship
     environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=pass
-        - POSTGRES_DB=postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: postgres
+    volumes:
+      - keycloak_data:/var/lib/postgresql/data
+      - ./insert.sql:/docker-entrypoint-initdb.d/insert.sql:ro
     ports:
-        - 2345:5432
+      - 2345:5432
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:20.0.3
+    container_name: keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/postgres
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: pass
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command:
+      - start-dev
+      - --http-relative-path=/auth
+      - --spi-converter-javascript-enabled=true
+    ports:
+      - "8081:8080"
+    depends_on:
+      - keycloak-db
+
 volumes:
   postgres_data:
+  keycloak_data:

@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -89,5 +90,58 @@ public class KeycloakService {
             throw new RuntimeException("Failed to authenticate");
         }
         return (String) responseBody.get("access_token");
+    }
+
+
+    public Map<String,String> signInSecond(UserSignInDto userSignInDto){
+        String tokenEndPoint = url + "/realms/" + realm + "/protocol/openid-connect/token";
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type","password");
+        formData.add("client_id",client);
+        formData.add("client_secret",clientSecret);
+        formData.add("username",userSignInDto.getUsername());
+        formData.add("password",userSignInDto.getPassword());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(tokenEndPoint, new HttpEntity<>(formData, headers), Map.class);
+        Map<String, Object> responseBody = response.getBody();
+
+        if (!response.getStatusCode().is2xxSuccessful() || responseBody == null){
+            log.error("Error in signin in");
+            throw new RuntimeException("Failed to authenticate");
+        }
+        Map<String,String> resp = new HashMap<>();
+        String access_token = (String) responseBody.get("access_token");
+        String refresh_token = (String) responseBody.get("refresh_token");
+        resp.put("access_token",access_token);
+        resp.put("refresh_token",refresh_token);
+        return resp;
+    }
+
+
+
+    public void changePassword(String username, String newPassword){
+        List<UserRepresentation> users = keycloak
+                .realm(realm)
+                .users()
+                .search(username);
+        if (users.isEmpty()){
+            log.error("User not found to change");
+            throw new RuntimeException("User not found to change");
+        }
+        UserRepresentation userRepresentation = users.get(0);
+
+        CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
+        credentialRepresentation.setValue(newPassword);
+        credentialRepresentation.setTemporary(false);
+        keycloak
+                .realm(realm)
+                .users()
+                .get(userRepresentation.getId())
+                .resetPassword(credentialRepresentation);
+
+        log.info("Password changed");
     }
 }
