@@ -1,9 +1,6 @@
 package kz.bitlab.mainservice.controller;
 
-import kz.bitlab.mainservice.dto.TokenRefreshRequest;
-import kz.bitlab.mainservice.dto.UserChangePasswordDto;
-import kz.bitlab.mainservice.dto.UserCreateDto;
-import kz.bitlab.mainservice.dto.UserSignInDto;
+import kz.bitlab.mainservice.dto.*;
 import kz.bitlab.mainservice.service.KeycloakService;
 import kz.bitlab.mainservice.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
@@ -11,10 +8,8 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -55,4 +50,24 @@ public class UserController {
         return ResponseEntity.ok(tokens);
     }
 
+    @PostMapping("/role/assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> assignRole(@RequestBody RoleUpdateDto dto) {
+        keycloakService.assignRole(dto.getUsername(), dto.getRole());
+        return ResponseEntity.ok("Role assigned");
+    }
+
+    @PostMapping("/role/remove")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> removeRole(@RequestBody RoleUpdateDto dto) {
+        keycloakService.removeRole(dto.getUsername(), dto.getRole());
+        return ResponseEntity.ok("Role removed");
+    }
+
+    @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateMyProfile(@RequestBody UserUpdateDto dto, Authentication authentication) {
+        keycloakService.updateProfile(  UserUtils.getCurrentUserName(), dto);
+        return ResponseEntity.ok("User updated");
+    }
 }
