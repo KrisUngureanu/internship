@@ -1,5 +1,6 @@
 package kz.bitlab.mainservice.controller;
 
+import kz.bitlab.mainservice.dto.TokenRefreshRequest;
 import kz.bitlab.mainservice.dto.UserChangePasswordDto;
 import kz.bitlab.mainservice.dto.UserCreateDto;
 import kz.bitlab.mainservice.dto.UserSignInDto;
@@ -47,4 +48,10 @@ public class UserController {
         }
 
     }
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, String>> refresh(@RequestBody TokenRefreshRequest request) {
+        Map<String, String> tokens = keycloakService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(tokens);
+    }
+
 }

@@ -144,4 +144,31 @@ public class KeycloakService {
 
         log.info("Password changed");
     }
+
+    public Map<String, String> refreshToken(String refreshToken) {
+        String tokenEndpoint = url + "/realms/" + realm + "/protocol/openid-connect/token";
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "refresh_token");
+        formData.add("client_id", client);
+        formData.add("client_secret", clientSecret);
+        formData.add("refresh_token", refreshToken);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(tokenEndpoint, new HttpEntity<>(formData, headers), Map.class);
+        Map<String, Object> responseBody = response.getBody();
+
+        if (!response.getStatusCode().is2xxSuccessful() || responseBody == null) {
+            log.error("Failed to refresh token");
+            throw new RuntimeException("Could not refresh token");
+        }
+
+        Map<String, String> result = new HashMap<>();
+        result.put("access_token", (String) responseBody.get("access_token"));
+        result.put("refresh_token", (String) responseBody.get("refresh_token"));
+        return result;
+    }
+
 }
