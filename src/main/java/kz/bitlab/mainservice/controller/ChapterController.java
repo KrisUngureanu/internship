@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/chapters")
+@RequestMapping("/chapter")
 @Tag(name = "Chapter", description = "Operations about chapters")
 public class ChapterController {
 

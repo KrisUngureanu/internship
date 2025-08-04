@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/lessons")
+@RequestMapping("/lesson")
 @Tag(name = "Lesson", description = "Operations about lessons")
 public class LessonController {
 
