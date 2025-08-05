@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.ClientsResource;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -63,7 +65,7 @@ public class KeycloakService {
        credential.setTemporary(false);
        newUser.setCredentials(List.of(credential));
 
-       Response response = keycloak.realm(realm).users().create(newUser);
+       Response response = getKeycloakUsers().create(newUser);
        if (response.getStatus() != HttpStatus.CREATED.value()) {
            String errorBody = response.readEntity(String.class);
            log.error("Failed to create user! Status: {}, Body: {}", response.getStatus(), errorBody);
@@ -71,7 +73,7 @@ public class KeycloakService {
        }
 
 
-       List<UserRepresentation> users = keycloak.realm(realm).users().search(user.getUsername());
+       List<UserRepresentation> users = getKeycloakUsers().search(user.getUsername());
        if (users.isEmpty()) {
            throw new RuntimeException("User created but not found");
        }
@@ -227,23 +229,23 @@ public class KeycloakService {
     }
 
     public void assignRole(String username, String roleName) {
-        var user = keycloak.realm(realm).users().search(username).get(0);
+        var user = getKeycloakUsers().search(username).get(0);
         var clientId = keycloak.realm(realm).clients().findByClientId(client).get(0).getId();
         var role = keycloak.realm(realm).clients().get(clientId).roles().get(roleName).toRepresentation();
 
-        keycloak.realm(realm).users().get(user.getId()).roles().clientLevel(clientId).add(List.of(role));
+        getKeycloakUsers().get(user.getId()).roles().clientLevel(clientId).add(List.of(role));
     }
 
     public void removeRole(String username, String roleName) {
-        var user = keycloak.realm(realm).users().search(username).get(0);
+        var user = getKeycloakUsers().search(username).get(0);
         var clientId = keycloak.realm(realm).clients().findByClientId(client).get(0).getId();
         var role = keycloak.realm(realm).clients().get(clientId).roles().get(roleName).toRepresentation();
 
-        keycloak.realm(realm).users().get(user.getId()).roles().clientLevel(clientId).remove(List.of(role));
+        getKeycloakUsers().get(user.getId()).roles().clientLevel(clientId).remove(List.of(role));
     }
 
     public void updateProfile(String username, UserUpdateDto dto) {
-        var users = keycloak.realm(realm).users().search(username);
+        var users = getKeycloakUsers().search(username);
         if (users.isEmpty()) throw new RuntimeException("User not found");
 
         var user = users.get(0);
@@ -251,15 +253,19 @@ public class KeycloakService {
         if (dto.getLastName() != null) user.setLastName(dto.getLastName());
         if (dto.getEmail() != null) user.setEmail(dto.getEmail());
 
-        keycloak.realm(realm).users().get(user.getId()).update(user);
+        getKeycloakUsers().get(user.getId()).update(user);
 
         if (dto.getNewPassword() != null && !dto.getNewPassword().isEmpty()) {
             CredentialRepresentation newPass = new CredentialRepresentation();
             newPass.setType(CredentialRepresentation.PASSWORD);
             newPass.setValue(dto.getNewPassword());
             newPass.setTemporary(false);
-            keycloak.realm(realm).users().get(user.getId()).resetPassword(newPass);
+            getKeycloakUsers().get(user.getId()).resetPassword(newPass);
         }
+    }
+
+    private UsersResource getKeycloakUsers(){
+       return keycloak.realm(realm).users();
     }
 
 }
