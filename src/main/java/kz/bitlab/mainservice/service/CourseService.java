@@ -7,6 +7,7 @@ import kz.bitlab.mainservice.repository.CourseRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ public class CourseService {
         this.courseRepository = courseRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<CourseDto> getAllCourses() {
         log.info("Getting all courses");
         return courseRepository.findAll()
@@ -28,6 +30,7 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public CourseDto getCourseById(Long id) {
         return courseRepository.findById(id)
                 .map(CourseMapper::toDto)
@@ -36,31 +39,20 @@ public class CourseService {
                     return new IllegalArgumentException("Course not found");});
     }
 
-//    public CourseDto createCourse(CourseDto dto) {
-//        log.info("creating course");
-//        log.debug("course details {}", dto);
-//        Course course = CourseMapper.toEntity(dto);
-//        Course saved = courseRepository.save(course);
-//        return CourseMapper.toDto(saved);
-//    }
 
     public CourseDto createCourse(CourseDto courseDto) {
         if (courseDto == null) {
             throw new IllegalArgumentException("CourseDto cannot be null");
         }
 
-        // Преобразование DTO в сущность
         Course course = CourseMapper.toEntity(courseDto);
 
-        // Сохранение курса
         Course savedCourse = courseRepository.save(course);
 
-        // Проверка: если сохранение прошло неуспешно
         if (savedCourse == null) {
             throw new IllegalArgumentException("Failed to save course");
         }
 
-        // Преобразование сохраненной сущности обратно в DTO
         return CourseMapper.toDto(savedCourse);
     }
 

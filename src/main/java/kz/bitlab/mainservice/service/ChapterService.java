@@ -9,6 +9,7 @@ import kz.bitlab.mainservice.repository.CourseRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,13 +26,6 @@ public class ChapterService {
         this.courseRepository = courseRepository;
     }
 
-    public List<ChapterDto> getChaptersByCourseId(Long courseId) {
-        log.info("Getting chapters by course id {}", courseId);
-        return chapterRepository.findAllByCourseId(courseId)
-                .stream()
-                .map(ChapterMapper::toDto)
-                .collect(Collectors.toList());
-    }
 
     public ChapterDto createChapter(ChapterDto dto) {
         log.info("Creating chapter");
@@ -44,6 +38,7 @@ public class ChapterService {
         return ChapterMapper.toDto(saved);
     }
 
+    @Transactional(readOnly = true)
     public List<ChapterDto> getAllChapters() {
         log.info("Getting all chapters");
         return chapterRepository.findAll()
@@ -52,6 +47,7 @@ public class ChapterService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ChapterDto getChapterById(Long id) {
         return chapterRepository.findById(id)
                 .map(ChapterMapper::toDto)

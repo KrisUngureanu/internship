@@ -2,6 +2,7 @@ package kz.bitlab.mainservice.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import kz.bitlab.mainservice.dto.LessonDto;
 import kz.bitlab.mainservice.service.LessonService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,7 +38,7 @@ public class LessonController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
     @Operation(summary = "Create lesson")
-    public LessonDto createLesson(@RequestBody LessonDto dto) {
+    public LessonDto createLesson(@Valid @RequestBody LessonDto dto) {
         return lessonService.createLesson(dto);
     }
 }

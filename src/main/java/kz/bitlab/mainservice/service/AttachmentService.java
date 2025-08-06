@@ -17,6 +17,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class AttachmentService {
         }
     }
 
-
+    @Transactional(readOnly = true)
     public List<AttachmentDto> getAttachmentsByLessonId(Long lessonId) {
         return attachmentRepository.findAllByLessonId(lessonId)
                 .stream()

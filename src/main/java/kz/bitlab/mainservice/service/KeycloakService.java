@@ -1,8 +1,11 @@
 package kz.bitlab.mainservice.service;
 
+import kz.bitlab.mainservice.dto.KeycloakTokenResponse;
 import kz.bitlab.mainservice.dto.UserCreateDto;
 import kz.bitlab.mainservice.dto.UserSignInDto;
 import kz.bitlab.mainservice.dto.UserUpdateDto;
+import kz.bitlab.mainservice.exception.KeycloakServiceException;
+import kz.bitlab.mainservice.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
@@ -16,6 +19,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -50,91 +54,82 @@ public class KeycloakService {
     @Value("${keycloak.password}")
     private String adminPassword;
 
-   public UserRepresentation createUser(UserCreateDto user) {
-       UserRepresentation newUser = new UserRepresentation();
-       newUser.setEmail(user.getEmail());
-       newUser.setEmailVerified(true);
-       newUser.setUsername(user.getUsername());
-       newUser.setFirstName(user.getFirstName());
-       newUser.setLastName(user.getLastName());
-       newUser.setEnabled(true);
+//
+    public UserRepresentation createUser(UserCreateDto user) {
+        UserRepresentation newUser = createNewUser(user);
+        String token = getAdminAccessToken();
+        String roleId = getUserRole(token);
+        assignRoleToUser(newUser, roleId, token);
+        return newUser;
+    }
 
-       CredentialRepresentation credential = new CredentialRepresentation();
-       credential.setType(CredentialRepresentation.PASSWORD);
-       credential.setValue(user.getPassword());
-       credential.setTemporary(false);
-       newUser.setCredentials(List.of(credential));
+    private UserRepresentation createNewUser(UserCreateDto user) {
+        UserRepresentation newUser = new UserRepresentation();
+        newUser.setEmail(user.getEmail());
+        newUser.setEmailVerified(true);
+        newUser.setUsername(user.getUsername());
+        newUser.setFirstName(user.getFirstName());
+        newUser.setLastName(user.getLastName());
+        newUser.setEnabled(true);
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(user.getPassword());
+        credential.setTemporary(false);
+        newUser.setCredentials(List.of(credential));
 
-       Response response = getKeycloakUsers().create(newUser);
-       if (response.getStatus() != HttpStatus.CREATED.value()) {
-           String errorBody = response.readEntity(String.class);
-           log.error("Failed to create user! Status: {}, Body: {}", response.getStatus(), errorBody);
-           throw new RuntimeException("Failed to create user! Keycloak error: " + errorBody);
-       }
+        Response response = getKeycloakUsers().create(newUser);
+        if (response.getStatus() != HttpStatus.CREATED.value()) {
+            String errorBody = response.readEntity(String.class);
+            log.error("Failed to create user! Status: {}, Body: {}", response.getStatus(), errorBody);
+            throw new KeycloakServiceException("Failed to create user! Keycloak error: " + errorBody);
+        }
+        return newUser;
+    }
 
+    private String getUserRole(String token) {
+        String roleUrl = url + "/admin/realms/" + realm + "/roles/USER";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        ResponseEntity<Map> roleResponse = restTemplate.exchange(roleUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
 
-       List<UserRepresentation> users = getKeycloakUsers().search(user.getUsername());
-       if (users.isEmpty()) {
-           throw new RuntimeException("User created but not found");
-       }
-       UserRepresentation createdUser = users.get(0);
+        if (!roleResponse.getStatusCode().is2xxSuccessful() || roleResponse.getBody() == null) {
+            throw new KeycloakServiceException("Failed to fetch USER role from Keycloak");
+        }
+        Map<String, Object> userRole = roleResponse.getBody();
+        return (String) userRole.get("id");
+    }
 
-
-       String token = getAdminAccessToken();
-
-
-       String roleUrl = url + "/admin/realms/" + realm + "/roles/USER";
-       HttpHeaders headers = new HttpHeaders();
-       headers.setBearerAuth(token);
-       ResponseEntity<Map> roleResponse = restTemplate.exchange(roleUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-
-       if (!roleResponse.getStatusCode().is2xxSuccessful() || roleResponse.getBody() == null) {
-           throw new RuntimeException("Failed to fetch USER role from Keycloak");
-       }
-
-       Map<String, Object> userRole = roleResponse.getBody();
-
-
-       String assignUrl = url + "/admin/realms/" + realm + "/users/" + createdUser.getId() + "/role-mappings/realm";
-
-       List<Map<String, Object>> roles = List.of(Map.of(
-               "id", userRole.get("id"),
-               "name", userRole.get("name")
-       ));
-
-       headers.setContentType(MediaType.APPLICATION_JSON);
-       restTemplate.postForEntity(assignUrl, new HttpEntity<>(roles, headers), Void.class);
-
-       return createdUser;
-   }
+    private void assignRoleToUser(UserRepresentation newUser, String roleId, String token) {
+        String assignUrl = url + "/admin/realms/" + realm + "/users/" + newUser.getId() + "/role-mappings/realm";
+        List<Map<String, Object>> roles = List.of(Map.of("id", roleId));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        restTemplate.postForEntity(assignUrl, new HttpEntity<>(roles, headers), Void.class);
+    }
 
 
 
-
-    public Map<String,String> signInSecond(UserSignInDto userSignInDto){
+    public KeycloakTokenResponse signInSecond(UserSignInDto userSignInDto) {
         String tokenEndPoint = url + "/realms/" + realm + "/protocol/openid-connect/token";
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type","password");
-        formData.add("client_id",client);
-        formData.add("client_secret",clientSecret);
-        formData.add("username",userSignInDto.getUsername());
-        formData.add("password",userSignInDto.getPassword());
+        formData.add("grant_type", "password");
+        formData.add("client_id", client);
+        formData.add("client_secret", clientSecret);
+        formData.add("username", userSignInDto.getUsername());
+        formData.add("password", userSignInDto.getPassword());
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/x-www-form-urlencoded");
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(tokenEndPoint, new HttpEntity<>(formData, headers), Map.class);
-        Map<String, Object> responseBody = response.getBody();
+        ResponseEntity<KeycloakTokenResponse> response = restTemplate.postForEntity(tokenEndPoint, new HttpEntity<>(formData, headers), KeycloakTokenResponse.class);
+        KeycloakTokenResponse responseBody = response.getBody();
 
-        if (!response.getStatusCode().is2xxSuccessful() || responseBody == null){
-            log.error("Error in signin in");
-            throw new RuntimeException("Failed to authenticate");
+        if (responseBody == null || !response.getStatusCode().is2xxSuccessful()) {
+            log.error("Error signing in");
+            throw new KeycloakServiceException("Failed to authenticate");
         }
-        Map<String,String> resp = new HashMap<>();
-        String access_token = (String) responseBody.get("access_token");
-        String refresh_token = (String) responseBody.get("refresh_token");
-        resp.put("access_token",access_token);
-        resp.put("refresh_token",refresh_token);
-        return resp;
+
+        return responseBody;
     }
 
 
@@ -189,8 +184,8 @@ public class KeycloakService {
         return result;
     }
 
-    public String getAdminAccessToken() {
 
+    public String getAdminAccessToken() {
         String tokenUrl = url + "/realms/" + realm + "/protocol/openid-connect/token";
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "password");
@@ -202,42 +197,33 @@ public class KeycloakService {
         headers.add("Content-Type", "application/x-www-form-urlencoded");
 
         ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(formData, headers), Map.class);
-        return (String) response.getBody().get("access_token");
-    }
-    public void assignUserRole(String userId) {
-        String token = getAdminAccessToken();
+        Map<String, String> responseBody = response.getBody();
 
-        String clientsUrl = url + "/admin/realms/" + realm + "/clients?clientId=" + client;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        ResponseEntity<List> clientResponse = restTemplate.exchange(clientsUrl, HttpMethod.GET, new HttpEntity<>(headers), List.class);
-        if (clientResponse.getBody() == null || clientResponse.getBody().isEmpty()) {
-            throw new RuntimeException("Client not found");
+        if (responseBody == null || !response.getStatusCode().is2xxSuccessful()) {
+            log.error("Failed to get admin access token");
+            throw new KeycloakServiceException("Failed to get admin access token");
         }
-        String clientUUID = (String) ((Map) clientResponse.getBody().get(0)).get("id");
 
-        String roleUrl = url + "/admin/realms/" + realm + "/clients/" + clientUUID + "/roles/USER";
-        ResponseEntity<Map> roleResponse = restTemplate.exchange(roleUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-        Map<String, Object> userRole = roleResponse.getBody();
-
-        String assignUrl = url + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/clients/" + clientUUID;
-        List<Map<String, Object>> roles = List.of(Map.of(
-                "id", userRole.get("id"),
-                "name", userRole.get("name")
-        ));
-        restTemplate.postForEntity(assignUrl, new HttpEntity<>(roles, headers), Void.class);
+        String accessToken = responseBody.get("access_token");
+        if (accessToken == null) {
+            log.error("Access token is null");
+            throw new KeycloakServiceException("Access token is null");
+        }
+        return accessToken;
     }
+
+
 
     public void assignRole(String username, String roleName) {
-        var user = getKeycloakUsers().search(username).get(0);
+
         var clientId = keycloak.realm(realm).clients().findByClientId(client).get(0).getId();
         var role = keycloak.realm(realm).clients().get(clientId).roles().get(roleName).toRepresentation();
-
+        UserRepresentation user = getUser(username);
         getKeycloakUsers().get(user.getId()).roles().clientLevel(clientId).add(List.of(role));
     }
 
     public void removeRole(String username, String roleName) {
-        var user = getKeycloakUsers().search(username).get(0);
+        UserRepresentation user = getUser(username);
         var clientId = keycloak.realm(realm).clients().findByClientId(client).get(0).getId();
         var role = keycloak.realm(realm).clients().get(clientId).roles().get(roleName).toRepresentation();
 
@@ -245,7 +231,7 @@ public class KeycloakService {
     }
 
     public void updateProfile(String username, UserUpdateDto dto) {
-        var users = getKeycloakUsers().search(username);
+        List<UserRepresentation> users = getUserFromUsername(username);
         if (users.isEmpty()) throw new RuntimeException("User not found");
 
         var user = users.get(0);
@@ -264,8 +250,21 @@ public class KeycloakService {
         }
     }
 
+
     private UsersResource getKeycloakUsers(){
        return keycloak.realm(realm).users();
     }
+    private List<UserRepresentation> getUserFromUsername(String username){
+        return getKeycloakUsers().search(username);
+    }
+
+    private UserRepresentation getUser(String username){
+        List<UserRepresentation> users = getUserFromUsername(username);
+        if (users.isEmpty()) {
+            throw new UserNotFoundException("User not found: " + username);
+        }
+        return users.get(0);
+    }
+
 
 }

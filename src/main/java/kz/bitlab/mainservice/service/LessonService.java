@@ -9,6 +9,7 @@ import kz.bitlab.mainservice.repository.LessonRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,12 +26,6 @@ public class LessonService {
         this.chapterRepository = chapterRepository;
     }
 
-    public List<LessonDto> getLessonsByChapterId(Long chapterId) {
-        return lessonRepository.findAllByChapterId(chapterId)
-                .stream()
-                .map(LessonMapper::toDto)
-                .collect(Collectors.toList());
-    }
 
     public LessonDto createLesson(LessonDto dto) {
         Chapter chapter = chapterRepository.findById(dto.getChapterId()).orElseThrow(() -> {
@@ -45,6 +40,7 @@ public class LessonService {
         return LessonMapper.toDto(saved);
     }
 
+    @Transactional(readOnly = true)
     public List<LessonDto> getAllLessons() {
         log.info("Getting all lessons");
        return lessonRepository.findAll()
@@ -53,6 +49,7 @@ public class LessonService {
                .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public LessonDto getLessonById(Long id) {
         log.info("Getting lesson by id {}", id);
         return lessonRepository.findById(id)

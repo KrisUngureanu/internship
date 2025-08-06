@@ -1,5 +1,6 @@
 package kz.bitlab.mainservice.controller;
 
+import jakarta.validation.Valid;
 import kz.bitlab.mainservice.dto.*;
 import kz.bitlab.mainservice.service.KeycloakService;
 import kz.bitlab.mainservice.utils.UserUtils;
@@ -20,12 +21,12 @@ public class UserController {
     private final KeycloakService keycloakService;
     @PostMapping(value = "/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public UserRepresentation createUser(@RequestBody UserCreateDto userCreateDto){
+    public UserRepresentation createUser(@Valid @RequestBody UserCreateDto userCreateDto){
         return keycloakService.createUser(userCreateDto);
     }
 
     @PostMapping(value = "/sign-in")
-    public Map<String, String> signIn(@RequestBody UserSignInDto userSignInDto){
+    public KeycloakTokenResponse signIn(@RequestBody UserSignInDto userSignInDto){
         return keycloakService.signInSecond(userSignInDto);
     }
 

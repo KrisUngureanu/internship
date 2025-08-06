@@ -2,8 +2,10 @@ package kz.bitlab.mainservice.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import kz.bitlab.mainservice.dto.ChapterDto;
 import kz.bitlab.mainservice.service.ChapterService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +39,8 @@ public class ChapterController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
     @Operation(summary = "Create chapter")
-    public ChapterDto createChapter(@RequestBody ChapterDto dto) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ChapterDto createChapter(@Valid @RequestBody ChapterDto dto) {
         return chapterService.createChapter(dto);
     }
 }
